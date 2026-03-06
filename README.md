@@ -28,7 +28,8 @@ Physique : Rigidbody2D en mode cinématique/manuel.
 
 Scripting : C# (Détection par OverlapBox pour une précision au pixel près).
 
-## Le Défi Technique : La détection du sol
+## Le Défi Technique : 
+### La détection du sol
 Le plus gros défi a été de créer un système de détection de collision (Grounded) qui fonctionne dans toutes les directions.
 
 j'ai implémenté 4 points de détection (groundCheck) :
@@ -51,3 +52,32 @@ Gauche/Droite (Mode Vertical)
         isGrounded = touchingDownV || touchingUpV;
     }
 <img width="414" height="174" alt="image" src="https://github.com/user-attachments/assets/4a3f3f66-af14-4b53-8977-0189854ca511" />
+
+### le même saut peu importe la vitesse
+Un saut constant quelle que soit la vitesse
+Un autre défi majeur a été de garantir que le joueur parcoure toujours la même distance lors d'un saut, indépendamment de sa vitesse horizontale (notamment lors du passage dans des portails d'accélération).
+
+Pour maintenir cette cohérence et éviter que le gameplay ne devienne imprévisible, j'ai implémenté un système d'ajustement dynamique : la force de saut et la gravité sont modifiées en temps réel selon un multiplicateur de vitesse.
+
+        float adjustedJump = jumpForce * multiplier;
+    
+        if (isVerticalMode)
+        {
+            float jumpDirectionX = isGravityUp ? adjustedJump : -adjustedJump;
+            rb.linearVelocity = new Vector2(jumpDirectionX, rb.linearVelocity.y);
+        }
+        else
+        {
+            float jumpDirectionY = isGravityUp ? -adjustedJump : adjustedJump;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpDirectionY);
+        }
+J'ai choisi de coder le saut via la physique (Rigidbody2D) plutôt que d'utiliser une simple animation pour plusieurs raisons de gameplay cruciales :
+
+**Liberté d'action** : Utiliser une animation pour le saut "verrouille" souvent l'état du joueur. Par exemple, dans mes tests précédents, le joueur devenait invincible ou ignorait les collisions mortelles tant que l'animation n'était pas terminée.
+
+**Gestion des collisions** : Avec un saut physique, les composants de détection de collision restent actifs en permanence. Le joueur peut donc mourir instantanément s'il percute un obstacle, même en plein milieu de sa trajectoire de saut.
+
+## Conclusion
+Pour conclure, ce projet dispose d'une base solide mais pourrait bénéficier de plusieurs améliorations, comme la création d'un menu principal et le développement de niveaux. Un point technique reste également à peaufiner : les particules de traînée (trail particles) qui suivent le joueur sont pour le moment fixées à un coin du cube, ce qui manque de naturel lors des rotations et des changement de mode.
+
+Cependant, même si certains aspects peuvent être améliorés, la réalisation de ce jeu m'a énormément plu. Ce projet m'a permis de découvrir en profondeur le fonctionnement du Rigidbody2D, de la physique de saut, et plus globalement des fonctionnalités essentielles d'Unity.
